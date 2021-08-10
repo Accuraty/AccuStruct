@@ -1,0 +1,1252 @@
+@inherits ToSic.Sxc.Dnn.RazorComponent
+@using ToSic.Razor.Blade
+@using Newtonsoft.Json
+@using System.Linq
+
+@* @functions{
+  public Dictionary<string,object> recursiveJsonParse(string json){
+    Dictionary<string,object> parsed = new Dictionary<string,object>{};
+    foreach(var x in Newtonsoft.Json.Linq.JObject.Parse(Tags.Strip(json)))
+    {
+      if(x.Value.GetType().ToString() != "Newtonsoft.Json.Linq.JObject"
+        && x.Value.GetType().ToString() != "Newtonsoft.Json.Linq.JArray")
+      {
+        parsed.Add(x);
+      }
+      @* else if(x.Value.GetType().ToString() == "Newtonsoft.Json.Linq.JObject")
+      {
+        parsed.Add(recursiveJsonParse(x));
+      }
+      else if(x.Value.GetType().ToString() == "Newtonsoft.Json.Linq.JArray")
+      {
+
+      }
+      @* <div class="col-4">
+        x.Value.GetType() x.Value.HasValues
+        if(x.Value.GetType().ToString() == "Newtonsoft.Json.Linq.JObject")
+        {
+          <div class="row">
+            foreach(var y in Newtonsoft.Json.Linq.JObject.Parse(x.Value.ToString()))
+            {
+              <div class="col-4">
+                y
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+    }
+    return parsed;
+  }
+} *@
+
+@{
+  var jsonLd = new Dictionary<string, object> { };
+  var jsonLdLocalBusiness = new Dictionary<string, object> { };
+  var jsonLdGraph = new Dictionary<string, object> { };
+  var jsonLdSite = new Dictionary<string, object> { };
+  List<Object> jsonLdArr = new List<Object>();
+  @* opening p tag is here, and the closing tag is at the end of this code block *@
+  string twitterOverride = "<p>";
+  List<string> jsonLdCustom = new List<string>();
+  @*{ "@graph", new Newtonsoft.Json.Linq.JArray( Newtonsoft.Json.Linq.JObject.FromObject(new Dictionary<string, object> {}))}*@
+  @* var list = !AsList(Data).First().IsDemoItem ? AsList(Data) : null; *@
+  var list = AsList(Data);
+  int idx = 0;
+  @* bool jsonLdDisplayed = false; *@
+  List<string> socialLinks = new List<string>();
+  if(App.Settings.SocialLinks != null && App.Settings.SocialLinks != "")
+  {
+    string tmpSocialLinks = App.Settings.SocialLinks;
+    tmpSocialLinks = String.Concat(tmpSocialLinks.Where(c => !Char.IsWhiteSpace(c)));
+    foreach(var x in tmpSocialLinks.Split(','))
+    {
+      socialLinks.Add(x);
+    }
+  }
+  if (list.First().IsDemoItem)
+  {
+    jsonLdLocalBusiness = new Dictionary<string, object> {
+      { "@context", "https://schema.org"},
+      { "@type", App.Settings.OrgType},
+      { "@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#organization"},
+      { "name", Dnn.Portal.PortalName},
+      { "address", new Dictionary<string, object> {
+        { "@type", "PostalAddress"},
+        { "streetAddress", App.Settings.StreetAddress},
+        { "addressLocality", App.Settings.AddressLocality},
+        { "addressRegion", App.Settings.AddressRegion},
+        { "postalCode", App.Settings.PostalCode},
+        { "addressCountry", "US"}
+      }},
+      { "url", Dnn.Tab.FullUrl},
+      {"email", App.Settings.Email},
+      {"telephone", App.Settings.Phone},
+      {"image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
+      { "brand", new Dictionary<string, object>{
+        {"@type", "Brand"},
+        {"name", Dnn.Portal.PortalName},
+        {"logo", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=200&w=200&anchor=middlecenter")}
+      }},
+      {"sameAs", socialLinks}
+    };
+    jsonLdSite = new Dictionary<string, object> {
+      { "@context", "https://schema.org"},
+      { "@type", "WebSite"},
+      { "@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#website"},
+      { "publisher", new Dictionary<string,object>{ {"@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#organization" }}},
+      { "name", Dnn.Portal.PortalName},
+      { "url", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
+      { "image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
+    };
+    @* jsonLdSite.Add("publisher", ) *@
+    @* List<Object> jsonLdArr = new List<Object>(); *@
+    jsonLdArr.Add(jsonLdSite);
+    jsonLdArr.Add(jsonLdLocalBusiness);
+    jsonLdGraph = new Dictionary<string, object>{
+      {"@context", "https://schema.org"},
+      { "@graph", jsonLdArr }
+    };
+    HtmlPage.AddJsonLd(jsonLdArr);
+    HtmlPage.AddOpenGraph("site_name", Dnn.Portal.PortalName);
+    HtmlPage.AddOpenGraph("type", "website");
+    HtmlPage.AddOpenGraph("description", Dnn.Tab.Description);
+    string resize = "";
+    string resizeTwitter = "";
+    if(AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 1200 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 630)
+    {
+      resize = "?h=630&w=1200&anchor=middlecenter";
+      resizeTwitter = "?h=600&w=1200&anchor=middlecenter";
+    }
+    else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
+    || (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
+    {
+      resize = "?h=315&w=600&anchor=middlecenter";
+      resizeTwitter = "?h=300&w=157&anchor=middlecenter";
+    }
+    else if(AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 300 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 157)
+    {
+      resize = "?h=200&w=200&anchor=middlecenter";
+      resizeTwitter = "?h=300&w=157&anchor=middlecenter";
+    }
+    else
+    {
+      resizeTwitter = "?h=144&w=144&anchor=middlecenter";
+      resize = "?h=200&w=200&anchor=middlecenter";
+    }
+    HtmlPage.AddOpenGraph("image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resize));
+    HtmlPage.AddOpenGraph("image:alt", (Dnn.Portal.PortalName + " Logo"));
+    HtmlPage.AddOpenGraph("url", Dnn.Tab.FullUrl);
+    HtmlPage.AddOpenGraph("title", Text.First(Dnn.Tab.Title, Dnn.Tab.TabName));
+    @* Twitter card additions: *@
+    HtmlPage.AddMeta("twitter:card", "summary");
+    twitterOverride += "\"twitter:card\": \"summary\" <br>";
+    if(App.Settings.TwitterHandle != "@" && App.Settings.TwitterHandle != "")
+    {
+      HtmlPage.AddMeta("twitter:site", App.Settings.TwitterHandle);
+      twitterOverride += "\"twitter:site\": \"" + App.Settings.TwitterHandle + "\"<br>";
+    }
+    HtmlPage.AddMeta("twitter:image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resizeTwitter));
+    twitterOverride += "\"twitter:image\": \"https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resizeTwitter + "\"<br>";
+    @* twitterOverride += "\"\": " +  +"<br>"; *@
+    @* Pinterest rich pin additions: *@
+
+  }
+  else
+  {
+
+    jsonLdLocalBusiness = new Dictionary<string, object> {
+      @* { "@context", "https://schema.org"}, *@
+      { "@type", App.Settings.OrgType},
+      { "@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
+      { "name", Dnn.Portal.PortalName},
+      { "address", new Dictionary<string, object> {
+        { "@type", "PostalAddress"},
+        { "streetAddress", App.Settings.StreetAddress},
+        { "addressLocality", App.Settings.AddressLocality},
+        { "addressRegion", App.Settings.AddressRegion},
+        { "postalCode", App.Settings.PostalCode},
+        { "addressCountry", "US"}
+      }},
+      { "url", Dnn.Tab.FullUrl},
+      {"email", App.Settings.Email},
+      {"telephone", App.Settings.Phone},
+      {"image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
+      { "brand", new Dictionary<string, object>{
+        {"@type", "Brand"},
+        {"name", Dnn.Portal.PortalName},
+        {"logo", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=200&w=200&anchor=middlecenter")}
+      }},
+      {"sameAs", socialLinks}
+    };
+    jsonLdSite = new Dictionary<string, object> {
+      { "@context", "https://schema.org"},
+      { "@type", "WebSite"},
+      { "@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#website"},
+      { "publisher", new Dictionary<string,object>{ {"@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#organization" }}},
+      { "name", Dnn.Portal.PortalName},
+      { "url", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
+      { "image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
+    };
+
+    if (!AsList(Data).Where(a => (a.Type == "og")).Any() || AsList(Data).Where(a => (a.Type == "og")).Count() > 1)
+    {
+      string resize = "";
+      string resizeTwitter = "";
+      if(AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 1200 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 630)
+      {
+        resize = "?h=630&w=1200&anchor=middlecenter";
+        resizeTwitter = "?h=600&w=1200&anchor=middlecenter";
+      }
+      else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
+      || (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
+      {
+        resize = "?h=315&w=600&anchor=middlecenter";
+        resizeTwitter = "?h=300&w=157&anchor=middlecenter";
+      }
+      else if(AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 300 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 157)
+      {
+        resize = "?h=200&w=200&anchor=middlecenter";
+        resizeTwitter = "?h=300&w=157&anchor=middlecenter";
+      }
+      else
+      {
+        resizeTwitter = "?h=144&w=144&anchor=middlecenter";
+        resize = "?h=200&w=200&anchor=middlecenter";
+      }
+      HtmlPage.AddOpenGraph("site_name", Dnn.Portal.PortalName);
+      HtmlPage.AddOpenGraph("type", "website");
+      HtmlPage.AddOpenGraph("description", Dnn.Tab.Description);
+      HtmlPage.AddOpenGraph("image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resize));
+      HtmlPage.AddOpenGraph("image:alt", (Dnn.Portal.PortalName + " Logo"));
+      HtmlPage.AddOpenGraph("url", Dnn.Tab.FullUrl);
+      HtmlPage.AddOpenGraph("title", Text.First(Dnn.Tab.Title, Dnn.Tab.TabName));
+      @* Twitter card additions: *@
+      HtmlPage.AddMeta("twitter:card", "summary");
+      twitterOverride += "\"twitter:card\": \"summary\"<br>";
+      if(App.Settings.TwitterHandle != "@" && App.Settings.TwitterHandle != "")
+      {
+        HtmlPage.AddMeta("twitter:site", App.Settings.TwitterHandle);
+        twitterOverride += "\"twitter:site\": \"" + App.Settings.TwitterHandle  +"\"<br>";
+      }
+      HtmlPage.AddMeta("twitter:image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resizeTwitter));
+      twitterOverride += "\"twitter:image\": \"https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resizeTwitter +"\"<br>";
+      @* Pinterest rich pin additions: *@
+
+    }
+    foreach (var item in list)
+    {
+      string mode = "";
+      if(item.ImageResizeMode != "" && item.ImageResizeMode != null)
+      {
+        mode = "&mode=" + item.ImageResizeMode;
+      }
+      idx++;
+      if (item.Type == "og" && AsList(Data).Where(a => (a.Type == "og")).Count() == 1)
+      {
+        string myImage = "https://" + Dnn.Portal.PortalAlias.HTTPAlias + item.Image + "?h=630&w=1200&anchor=" + item.ImageAnchor + mode;
+        HtmlPage.AddOpenGraph("site_name", Dnn.Portal.PortalName);
+        HtmlPage.AddOpenGraph("type", "website");
+        HtmlPage.AddOpenGraph("description", Text.First(item.Text, Dnn.Tab.Description));
+        if (item.Image != null && item.Image != "")
+        {
+          HtmlPage.AddOpenGraph("image", myImage);
+          HtmlPage.AddMeta("twitter:image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + item.Image + "?h=600&w=1200&anchor=" + item.ImageAnchor + mode));
+          twitterOverride += "\"twitter:image\": \"https://" + Dnn.Portal.PortalAlias.HTTPAlias + item.Image + "?h=600&w=1200&anchor=" + item.ImageAnchor + mode + "\"<br>";
+        }
+        else
+        {
+          HtmlPage.AddOpenGraph("image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=630&w=1200&anchor=" + item.ImageAnchor + mode));
+          HtmlPage.AddMeta("twitter:image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=600&w=1200&anchor=" + item.ImageAnchor + mode));
+          twitterOverride += "\"twitter:image\": \"https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=600&w=1200&anchor=" + item.ImageAnchor + mode + "\"<br>";
+        }
+        if (item.ImageCaption != null && item.ImageCaption != "")
+        {
+          HtmlPage.AddOpenGraph("image:alt", item.ImageCaption);
+        }
+        HtmlPage.AddOpenGraph("url", Dnn.Tab.FullUrl);
+        HtmlPage.AddOpenGraph("title", Text.First(item.Title, Dnn.Tab.Title, Dnn.Tab.TabName));
+        @* Twitter card additions: *@
+        HtmlPage.AddMeta("twitter:card", "summary");
+        twitterOverride += "\"twitter:card\": \"summary\"<br>";
+        if(App.Settings.TwitterHandle != "@" && App.Settings.TwitterHandle != "")
+        {
+          HtmlPage.AddMeta("twitter:site", App.Settings.TwitterHandle);
+          twitterOverride += "\"twitter:site\": \"" + App.Settings.TwitterHandle + "\"<br>";
+        }
+        @* Pinterest rich pin additions: *@
+      }
+      else if (item.Type == "jsonld" && AsList(Data).Where(a => (a.Type == "jsonld")).Count() == 1)
+      {
+        string myImage = "";
+        @* if (item.Image != null && item.Image != "")
+          {
+          myImage = "https://" + Dnn.Portal.PortalAlias.HTTPAlias + item.Image + "?mode=crop&h=601&w=589&anchor=middlecenter";
+          } *@
+        jsonLd = new Dictionary<string, object> {
+          @* { "@context", "https://schema.org"}, *@
+          { "@type", "WebPage"},
+          { "isPartOf", new Dictionary<string,object> {{"id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#website"}}},
+          { "headline", Text.First(item.Title, Dnn.Tab.Title)},
+          { "abstract", Tags.Strip(item.Text)},
+          { "url", Dnn.Tab.FullUrl}
+        };
+        if (item.Image != null && item.Image != "")
+        {
+          myImage = "https://" + Dnn.Portal.PortalAlias.HTTPAlias + item.Image + "?h=630&w=1200&anchor=" + item.ImageAnchor + mode;
+
+          jsonLd.Add("image", new Dictionary<string,object>[] {new Dictionary<string,object> {
+            { "@type", "ImageObject"},
+            {"representativeOfPage", "true"},
+            {"caption", item.ImageCaption},
+            {"url", myImage}
+          }});
+        }
+        @* } *@
+        @* if(item.Type == "jsonld"){ *@
+
+      }
+      else if(item.Type == "customjsonld"){
+        jsonLdCustom.Add(item.CustomJsonLd);
+        HtmlPage.AddJsonLd(Tags.Strip(item.CustomJsonLd));
+      }
+      else if(item.Type == "event")
+      {
+        Dictionary<string, object> tmpEvent = new Dictionary<string, object> {
+          {"location", new Dictionary<string, object>{
+            {"@type", "Place"},
+            {"name", item.LocationName},
+            {"address", new Dictionary<string, object>{
+              {"@type", "PostalAddress"},
+              {"addressLocality", item.LocationCity},
+              {"addressRegion", item.LocationRegion},
+              {"postalCode", item.LocationZip},
+              {"streetAddress", item.LocationAddress},
+              {"addressCountry", item.LocationCountry}
+            }}
+          }},
+          {"name", item.Title},
+          {"startDate", item.Start}
+        };
+        jsonLdArr.Add(tmpEvent);
+      }
+      @* else {
+        jsonLdGraph = jsonLdLocalBusiness;
+        jsonLdGraph.Add("@context", "https://schema.org");
+        } *@
+
+    }
+
+    jsonLdArr.Add(jsonLd);
+    jsonLdArr.Add(jsonLdLocalBusiness);
+    jsonLdArr.Add(jsonLdSite);
+    if(AsList(Data).Where(a => (a.Type == "customjsonld")).Any())
+    {
+      foreach(var x in jsonLdCustom)
+      {
+        @* Dictionary<string, object> tmpJsonLdCustom = new Dictionary<string, object>();
+          @foreach(var x in Newtonsoft.Json.Linq.JObject.Parse(Tags.Strip(item.CustomJsonLd)))
+          {
+
+          }
+
+
+
+        @foreach(var x in Newtonsoft.Json.Linq.JObject.Parse(Tags.Strip(item.CustomJsonLd)))
+                                              {
+                                                <div class="col-4">
+                                                  @(x.Value.GetType()) @(x.Value.HasValues)
+                                                  @if(x.Value.GetType().ToString() == "Newtonsoft.Json.Linq.JObject")
+                                                  {
+                                                    <div class="row">
+                                                      @foreach(var y in Newtonsoft.Json.Linq.JObject.Parse(x.Value.ToString()))
+                                                      {
+                                                        <div class="col-4">
+                                                          @y
+                                                        </div>
+                                                      }
+
+                                                    </div>
+                                                  }
+                                                  else if(x.Value.GetType().ToString() == "Newtonsoft.Json.Linq.JArray")
+                                                  {
+                                                    <div class="row">
+                                                    @foreach(var y in x.Value)
+                                                    {
+                                                      <div class="col-4">
+                                                          @y
+                                                        </div>
+                                                    }
+                                                    </div>
+                                                  }
+                                                </div>
+                                              }
+
+
+
+        *@
+        @* jsonLdArr.Add(Tags.Strip(x)); *@
+        @* jsonLdArr.Add(Newtonsoft.Json.Linq.JObject.Parse(Tags.Strip(x))); *@
+        @* jsonLdArr.Add(JsonConvert.DeserializeObject(Newtonsoft.Json.Linq.JObject.Parse(Tags.Strip(x)))); *@
+        jsonLdArr.Add(Tags.Strip(x));
+    @* HtmlPage.AddJsonLd(Tags.Strip(x)); *@
+
+      }
+    }
+
+    @* foreach(var y in list.Where( a => (a.Type == "customjsonld")).Select( z => z)){
+      jsonLdArr.Add(Tags.Strip(y.CustomJsonLd));
+      } *@
+    jsonLdGraph = new Dictionary<string, object>{
+    {"@context", "https://schema.org"},
+    { "@graph", jsonLdArr }
+  };
+    HtmlPage.AddJsonLd(jsonLdGraph);
+  }
+  twitterOverride += "</p>";
+}
+
+@if (Edit.Enabled)
+{
+      <section class="py-5" @(AsList(Data).First().IsDemoItem ? Edit.TagToolbar(Content) : "")>
+        <div class="container">
+          <div class="row">
+            <div class="col">
+              <h2>Hey @Dnn.User.DisplayName! These are this page's hidden Structure Data Cards.</h2>
+              <div class="alert alert-info mb-4 mb-lc-0">
+                <p class="mb-0">@Dnn.Portal.LogoFile If you're seeing this, it's because you're logged in with an administrator account and you can
+                  edit this. Regular users won't see this card - it's just for us to modify the OpenGraph so that when you
+                  share this page on Twitter or Facebook, the links will appear in a nice card style. This is not
+                  representative of a real Twitter or Facebook card but it's just to give you an idea of what might appear.
+                  You should always check <a href="https://cards-dev.twitter.com/validator"
+                target="_blank">https://cards-dev.twitter.com/validator</a> and <a
+                href="https://developers.facebook.com/tools/debug/"
+                target="_blank">https://developers.facebook.com/tools/debug/</a> before posting. The description comes
+                  from the Page Settings > Description so modify that field to change the content. Keep in mind that it should
+                  be less than 200 characters.</p>
+              </div>
+              <div class="row" style="margin-bottom: 3rem;">
+                <div class="col-12">
+                  Links to data validators/debuggers
+                </div>
+                @* <div class="col-12" style="display: flex; justify-content: space-evenly;"> *@
+                  <div class="col-sm-3 border border-info p-3">
+                    <a class="btn btn-primary" href="https://search.google.com/test/rich-results?utm_campaign=sdtt&utm_medium=url&url=@Dnn.Tab.FullUrl" target="_blank">
+                      Google Rich Results
+                    </a>
+                    <p></p>
+                  </div>
+                  <div class="col-sm-3 border border-info p-3">
+                    <a class="btn btn-primary" href="https://www.bing.com/webmasters/urlinspection" target="_blank">
+                      Bing URL Inspection
+                    </a>
+                    <p>Note: Need to be logged in with an account that has the domain verified.</p>
+                  </div>
+                  <div class="col-sm-3 border border-info p-3">
+                    <a class="btn btn-primary" href="https://developers.facebook.com/tools/debug/?q=@Dnn.Tab.FullUrl" target="_blank">
+                      Facebook
+                    </a>
+                    <p></p>
+                  </div>
+                  <div class="col-sm-3 border border-info p-3">
+                    <a class="btn btn-primary" href="https://www.linkedin.com/post-inspector/inspect/@Dnn.Tab.FullUrl" target="_blank">
+                      Linkedin
+                    </a>
+                    <p></p>
+                  </div>
+                  <div class="col-sm-3 border border-info p-3">
+                    <a class="btn btn-primary" href="https://cards-dev.twitter.com/validator" target="_blank">
+                      Twitter
+                    </a>
+                    <p>Note: requires configuring Twitter account for use with Twitter Cards.</p>
+                  </div>
+                  <div class="col-sm-3 border border-info p-3">
+                    <a class="btn btn-primary" href="https://developers.pinterest.com/tools/url-debugger/?link=@Dnn.Tab.FullUrl" target="_blank">
+                      Pinterest
+                    </a>
+                    <p>Note: requires @@type= product, recipe, or article to validate.</p>
+                  </div>
+                  <div class="col-sm-3 border border-info p-3">
+                    <a class="btn btn-primary" href="https://validator.schema.org/#url=@Dnn.Tab.FullUrl" target="_blank">
+                      General Schema
+                    </a>
+                    <p></p>
+                  </div>
+                @* </div> *@
+              </div>
+              <div class="row">
+            @if (AsList(Data).First().IsDemoItem)
+            {
+                      <div class="col">
+                        <p><strong>Auto-Generated Structured Data Types:</strong></p>
+                        <ul id="custom-structs" class="mb-4">
+                          <li>OpenGraph</li>
+                          <li>JsonLd</li>
+                        </ul>
+                      </div>
+            }
+            else
+            {
+                      <div class="col">
+                        <p><strong>Structured Data Types with custom settings:</strong></p>
+                        <ul id="custom-structs" class="mb-4">
+                  @foreach (var x in list)
+                  {
+                    @* @JsonConvert.SerializeObject(list, Formatting.Indented) *@
+                    if (x.Type == "og")
+                    {
+                                      <li>OpenGraph</li>
+                    }
+                    else if (x.Type == "jsonld")
+                    {
+                                      <li>JSON-LD</li>
+                    }
+                    else if (x.Type == "")
+                    {
+                                      <li>All Types</li>
+                    }
+                  }
+                        </ul>
+                      </div>
+            }
+              </div>
+            </div>
+          </div>
+                <div class="row" >
+        @if (AsList(Data).First().IsDemoItem)
+        {
+
+                        @* <div class="row" @Edit.TagToolbar(Content)> *@
+                          if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200 || AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200)
+                          && (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
+                          {
+                            <div class="col-12 p-3" >
+                              <div class="border border-info p-3">
+                                <p><strong>Auto-Generated OpenGraph:</strong></p>
+                                <p>Selected image is too small. Must be a minimum of 200px X 200px.</p>
+                                <div class="row">
+                                                      <div class="col-12 pt-3">
+                                                        <p><strong>Twitter Card Additions:</strong></p>
+                                                        @Html.Raw(twitterOverride)
+                                                      </div>
+                                                    </div>
+                              </div>
+                            </div>
+                          }
+                          else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 315)
+                          && (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
+                          {
+                            <div class="col-12 p-3" >
+                              <div class="border border-info p-3">
+                                <p><strong>Auto-Generated OpenGraph:</strong></p>
+                                <table style="width: 527px; height: 158px; border:">
+                                  <tbody style="background-color: #f2f3f5; border: 1px solid #dadde1;">
+                                    <tr style="height:158px;">
+                                      <td class="p-0" style="width: 158px; ">
+                                        <img src='@(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=158&w=158&anchor=middlecenter")' />
+                                      </td>
+                                      <td style="width: 369px; font-family: Helvetica, Arial, snas-serif; padding:10px 12px;">
+                                        <div style="color: #606770; font-size: 12px; line-height: 11px;  text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                                        <div style="font-weight: 600; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
+                                        <div style="margin-top: 3px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
+                                          @Dnn.Tab.Description
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                <div class="row">
+                                                      <div class="col-12 pt-3">
+                                                        <p><strong>Twitter Card Additions:</strong></p>
+                                                        @Html.Raw(twitterOverride)
+                                                      </div>
+                                                    </div>
+                              </div>
+                            </div>
+                          }
+                          else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
+                          || (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
+                          {
+                                                <div class="col-12 p-3" >
+                                                  <div class="border border-info p-3">
+                                                    <p><strong>Auto-Generated OpenGraph:</strong></p>
+                                                    <table style="width: 527px; height: 351.641px;">
+                                                      <tbody style="background-color: #f2f3f5; border: 1px solid #dadde1;">
+                                                        <tr style="height:274px;">
+                                                          <td class="p-0" style="width: 527px; ">
+                                                            <img src='@(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=274&w=527&anchor=middlecenter")' />
+                                                          </td>
+                                                        </tr>
+                                                        <tr>
+                                                          <td style="width: 527px; height: 78px; font-family: Helvetica, Arial, snas-serif; padding:10px 12px;  ">
+                                                            <div style="color: #606770; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; line-height: 16px; text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                                                            <div style="font-weight: 600; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
+                                                            <div style="margin-top: 3px; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 80px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
+                                                                @Dnn.Tab.Description
+                                                            </div>
+                                                          </td>
+                                                        </tr>
+                                                      </tbody>
+                                                    </table>
+                                                    <div class="row">
+                                                      <div class="col-12 pt-3">
+                                                        <p><strong>Twitter Card Additions:</strong></p>
+                                                        @Html.Raw(twitterOverride)
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                          }
+                        @* </div> *@
+                        @* <div class="row">
+                          <div class="col p-3" >
+                            <div class="border border-info p-3">
+                              <div class="row">
+                                <div class="col-10">
+                                  <p>Auto-Generated JSON-LD:</p>
+                                </div>
+                                <div class="col-2">
+                                  <a href="https://json-ld.org/" title="JSON-LD"><img style="border:0px;" width="64" src="https://json-ld.org/images/json-ld-logo-64.png" alt="JSON-LD-logo-64"/></a>
+                                </div>
+                              </div>
+                              <pre>@JsonConvert.SerializeObject(jsonLdGraph, Formatting.Indented)</pre>
+                            </div>
+                          </div>
+                        </div> *@
+                        <div class="col-12 p-3">
+                                <div class="border border-info p-3">
+                                  <div class="row m-0">
+                                    <div class="col-10">
+                                      <p><strong>Auto-Generated JSON-LD:</strong></p>
+                                    </div>
+                                    <div class="col-2 d-flex justify-content-end">
+                                      <a href="https://json-ld.org/" title="JSON-LD"><img style="border:0px;" width="64" src="https://json-ld.org/images/json-ld-logo-64.png" alt="JSON-LD-logo-64"/></a>
+                                    </div>
+                                    <div class="row m-0">
+                                      <div class="col-3 d-flex justify-content-end">
+                                        <p>Title: </p>
+                                      </div>
+                                      <div class="col-9">
+                                        @{object output;}
+                                        @* <p>@(jsonLd["headline"] != "" && jsonLd["headline"] != null ? jsonLd["headline"] : jsonLdLocalBusiness["name"] != "" && jsonLdLocalBusiness["name"] != null ? jsonLdLocalBusiness["name"] : "Not Found")</p> *@
+                                        <p>@(jsonLdSite.TryGetValue("headline", out output) ? output : jsonLdLocalBusiness.TryGetValue("name", out output) ? output : "Not Found")</p>
+                                      </div>
+                                      <div class="col-3 mt-2 d-flex justify-content-end">
+                                        <p>Page Description: </p>
+                                      </div>
+                                      <div class="col-9 mt-2">
+                                        <p>@(jsonLdSite.TryGetValue("abstract", out output) ? output : Dnn.Tab.Description)</p>
+                                      </div>
+                                      <div class="col-3 mt-2 d-flex justify-content-end">
+                                         <p>Main Image (Border added to show edge of image): </p>
+                                      </div>
+                                      <div class="col-9 mt-3 p-0 border border-info" style="border-width: medium !important;">
+                                        @* <img src='@AsList(jsonLdSite["image"]).First()["url"]' style="max-width: 75%;"></img> *@
+                                        @if(jsonLdSite.TryGetValue("image", out output))
+                                        {
+                                          <img src=@output style="width: 100%;"></img>
+                                        }
+                                        else
+                                        {
+                                          <p>There was a problem accessing an image for the page.</p>
+                                        }
+                                      </div>
+                                    </div>
+                                  </div>
+
+                              <div class="row">
+                                <div class="col-12 pt-3">
+                                  <p><strong>JSON-LD Script Contents:</strong></p>
+                                </div>
+                                <div class="col-12">
+                                  <pre>@JsonConvert.SerializeObject(jsonLdGraph, Formatting.Indented)</pre>
+                                </div>
+                              </div>
+                              </div>
+                              </div>
+        }
+        else
+        {
+          if (!AsList(Data).Where(a => (a.Type == "jsonld")).Any())
+          {
+                              <div class="col-12 p-3">
+                                <div class="border border-info p-3">
+                                  <div class="row m-0">
+                                    <div class="col-10">
+                                      <p><strong>Auto-Generated JSON-LD:</strong></p>
+                                    </div>
+                                    <div class="col-2 d-flex justify-content-end">
+                                      <a href="https://json-ld.org/" title="JSON-LD"><img style="border:0px;" width="64" src="https://json-ld.org/images/json-ld-logo-64.png" alt="JSON-LD-logo-64"/></a>
+                                    </div>
+                                    <div class="row m-0">
+                                      <div class="col-3 d-flex justify-content-end">
+                                        <p>Title: </p>
+                                      </div>
+                                      <div class="col-9">
+                                        @{object output;}
+                                        @* <p>@(jsonLd["headline"] != "" && jsonLd["headline"] != null ? jsonLd["headline"] : jsonLdLocalBusiness["name"] != "" && jsonLdLocalBusiness["name"] != null ? jsonLdLocalBusiness["name"] : "Not Found")</p> *@
+                                        <p>@(jsonLdSite.TryGetValue("headline", out output) ? output : jsonLdLocalBusiness.TryGetValue("name", out output) ? output : "Not Found")</p>
+                                      </div>
+                                      <div class="col-3 mt-2 d-flex justify-content-end">
+                                        <p>Page Description: </p>
+                                      </div>
+                                      <div class="col-9 mt-2">
+                                        <p>@(jsonLdSite.TryGetValue("abstract", out output) ? output : Dnn.Tab.Description)</p>
+                                      </div>
+                                      <div class="col-3 mt-2 d-flex justify-content-end">
+                                         <p>Main Image (Border added to show edge of image): </p>
+                                      </div>
+                                      <div class="col-9 mt-3 p-0 border border-info" style="border-width: medium !important;">
+                                        @* <img src='@AsList(jsonLdSite["image"]).First()["url"]' style="max-width: 75%;"></img> *@
+                                        @if(jsonLdSite.TryGetValue("image", out output))
+                                        {
+                                          <img src=@output style="width: 100%;"></img>
+                                        }
+                                        else
+                                        {
+                                          <p>There was a problem accessing an image for the page.</p>
+                                        }
+                                      </div>
+                                    </div>
+                                  </div>
+
+                              <div class="row">
+                                <div class="col-12 pt-3">
+                                  <p><strong>JSON-LD Script Contents:</strong></p>
+                                </div>
+                                <div class="col-12">
+                                  <pre>@JsonConvert.SerializeObject(jsonLdGraph, Formatting.Indented)</pre>
+                                </div>
+                              </div>
+                              </div>
+                              </div>
+
+          }
+          if (!AsList(Data).Where(a => (a.Type == "og")).Any())
+          {
+                              @* <div class="col-12 p-3">
+                                <div class="border border-info p-3">
+                                  <p>Auto-Generated OpenGraph:</p>
+                                  <div class="open-graph-card d-inline-flex mx-auto">
+                                    <div class="row no-gutters rounded border shadow-lg align-items-center">
+                                      <div class="col-auto">
+                                        <img src='@("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?mode=crop&h=158&w=158&anchor=middlecenter")' />
+                                      </div>
+                                      <div class="col px-2 text-smaller">
+                                        <h5 class="mb-1 font-weight-bold">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</h5>
+                                        <div class="line-clamp-3">
+                                          <p class="mb-1 text-smallest">@Dnn.Tab.Description</p>
+                                        </div>
+                                        <p class="mb-0">
+                                          <a href="@Dnn.Tab.FullUrl" class="stretched-link tet-decoration-none">@Dnn.Portal.PortalAlias.HTTPAlias.Replace("/en-ca","").Replace("/fr-ca","")</a>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div> *@
+              if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200 || AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200)
+                          && (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
+              {
+                <div class="col-12 p-3" >
+                  <div class="border border-info p-3">
+                    <p><strong>Auto-Generated OpenGraph:</strong></p>
+                    <p>Selected image is too small. Must be a minimum of 200px X 200px.</p>
+                    <div class="row">
+                                                      <div class="col-12 pt-3">
+                                                        <p><strong>Twitter Card Additions:</strong></p>
+                                                        @Html.Raw(twitterOverride)
+                                                      </div>
+                                                    </div>
+                  </div>
+                </div>
+              }
+              else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 315)
+              && (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
+              {
+                <div class="col-12 p-3" >
+                  <div class="border border-info p-3">
+                    <p><strong>Auto-Generated OpenGraph:</strong></p>
+                    <table style="width: 527px; height: 158px; border:">
+                      <tbody style="background-color: #f2f3f5; border: 1px solid #dadde1;">
+                        <tr style="height:158px;">
+                          <td class="p-0" style="width: 158px; ">
+                            <img src='@(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=158&w=158&anchor=middlecenter")' />
+                          </td>
+                          <td style="width: 369px; font-family: Helvetica, Arial, snas-serif; padding:10px 12px;">
+                            <div style="color: #606770; font-size: 12px; line-height: 11px;  text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                            <div style="font-weight: 600; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
+                            <div style="margin-top: 3px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
+                              @Dnn.Tab.Description
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div class="row">
+                                                      <div class="col-12 pt-3">
+                                                        <p><strong>Twitter Card Additions:</strong></p>
+                                                        @Html.Raw(twitterOverride)
+                                                      </div>
+                                                    </div>
+                  </div>
+                </div>
+              }
+              else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
+              || (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
+              {
+                                    <div class="col-12 p-3" >
+                                      <div class="border border-info p-3">
+                                        <p><strong>Auto-Generated OpenGraph:</strong></p>
+                                        <table style="width: 527px; height: 351.641px;">
+                                          <tbody style="background-color: #f2f3f5; border: 1px solid #dadde1;">
+                                            <tr style="height:274px;">
+                                              <td class="p-0" style="width: 527px; ">
+                                                <img src='@(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=274&w=527&anchor=middlecenter")' />
+                                              </td>
+                                            </tr>
+                                            <tr>
+                                              <td style="width: 527px; height: 78px; font-family: Helvetica, Arial, snas-serif; padding:10px 12px;  ">
+                                                <div style="color: #606770; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; line-height: 16px; text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                                                <div style="font-weight: 600; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
+                                                <div style="margin-top: 3px; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 80px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
+                                                    @Dnn.Tab.Description
+                                                </div>
+                                              </td>
+                                            </tr>
+                                          </tbody>
+                                        </table>
+                                        <div class="row">
+                                                      <div class="col-12 pt-3">
+                                                        <p><strong>Twitter Card Additions:</strong></p>
+                                                        @Html.Raw(twitterOverride)
+                                                      </div>
+                                                    </div>
+                                      </div>
+                                    </div>
+              }
+          }
+          foreach (var item in list)
+          {
+            string mode = "";
+            if(item.ImageResizeMode != "" && item.ImageResizeMode != null)
+            {
+              mode = "&mode=" + item.ImageResizeMode;
+            }
+            if (item.Type == "og" )
+            {
+              if(AsList(Data).Where(a => (a.Type == "og")).Count() == 1)
+              {
+                if((AccuKit.imageGetWidthfromFile(item.Image) < 200 || AccuKit.imageGetHeightfromFile(item.Image) < 200)
+                  && (AccuKit.imageGetWidthfromFile(item.Image) != 0 || AccuKit.imageGetHeightfromFile(item.Image) != 0))
+                {
+                  <div class="col-12 p-3" @Edit.TagToolbar(item)>
+                    <div class="border border-info p-3">
+                      <p><strong>OpenGraph:</strong></p>
+                      <p>Selected image is too small. Must be a minimum of 200px X 200px.</p>
+                      <div class="row">
+                                                        <div class="col-12 pt-3">
+                                                          <p><strong>Twitter Card Additions:</strong></p>
+                                                          @Html.Raw(twitterOverride)
+                                                        </div>
+                                                      </div>
+                    </div>
+                  </div>
+                }
+                else if((AccuKit.imageGetWidthfromFile(item.Image) <= 600 && AccuKit.imageGetHeightfromFile(item.Image) <= 315)
+                && (AccuKit.imageGetWidthfromFile(item.Image) != 0 && AccuKit.imageGetHeightfromFile(item.image) != 0))
+                {
+                  <div class="col-12 p-3" @Edit.TagToolbar(item)>
+                    <div class="border border-info p-3">
+                      <p><strong>OpenGraph:</strong></p>
+                      <table style="width: 527px; height: 158px; border:">
+                        <tbody style="background-color: #f2f3f5; border: 1px solid #dadde1;">
+                          <tr style="height:158px;">
+                            <td class="p-0" style="width: 158px; ">
+                              <img src="@item.Image?h=158&w=158@mode&anchor=@item.ImageAnchor" />
+                            </td>
+                            <td style="width: 369px; font-family: Helvetica, Arial, snas-serif; padding:10px 12px;">
+                              <div style="color: #606770; font-size: 12px; line-height: 11px;  text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                              <div style="font-weight: 600; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(item.Title, Dnn.Tab.Title, Dnn.Tab.TabName)</div>
+                              <div style="margin-top: 3px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
+                                @if (item.Text != null && item.Text != "")
+                                {
+                                  @Html.Raw(item.Text)
+                                }
+                                else
+                                {
+                                  @Dnn.Tab.Description
+                                }
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <div class="row">
+                                                        <div class="col-12 pt-3">
+                                                          <p><strong>Twitter Card Additions:</strong></p>
+                                                          @Html.Raw(twitterOverride)
+                                                        </div>
+                                                      </div>
+                    </div>
+                  </div>
+                }
+                else if((AccuKit.imageGetWidthfromFile(item.Image) >= 600 && AccuKit.imageGetHeightfromFile(item.Image) >= 315)
+                || (AccuKit.imageGetWidthfromFile(item.Image) == 0 && AccuKit.imageGetHeightfromFile(item.Image) == 0))
+                {
+                                      <div class="col-12 p-3" @Edit.TagToolbar(item)>
+                                        <div class="border border-info p-3">
+                                          <p><strong>OpenGraph:</strong></p>
+                                          <table style="width: 527px; height: 351.641px;">
+                                            <tbody style="background-color: #f2f3f5; border: 1px solid #dadde1;">
+                                              <tr style="height:274px;">
+                                                <td class="p-0" style="width: 527px; ">
+                                                  <img src="@item.Image?h=274&w=527&anchor=@item.ImageAnchor@mode" />
+                                                </td>
+                                              </tr>
+                                              <tr>
+                                                <td style="width: 527px; height: 78px; font-family: Helvetica, Arial, snas-serif; padding:10px 12px;  ">
+                                                  <div style="color: #606770; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; line-height: 16px; text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                                                  <div style="font-weight: 600; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(item.Title, Dnn.Tab.Title, Dnn.Tab.TabName)</div>
+                                                  <div style="margin-top: 3px; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 80px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
+                                                    @if (item.Text != null && item.Text != "")
+                                                    {
+                                                      @Html.Raw(item.Text)
+                                                    }
+                                                    else
+                                                    {
+                                                      @Dnn.Tab.Description
+                                                    }
+                                                  </div>
+                                                </td>
+                                              </tr>
+                                            </tbody>
+                                          </table>
+                                          <div class="row">
+                                                        <div class="col-12 pt-3">
+                                                          <p><strong>Twitter Card Additions:</strong></p>
+                                                          @Html.Raw(twitterOverride)
+                                                        </div>
+                                                      </div>
+                                              @* <div class="" style="width:158px;">
+                                                <img src="@item.Image?mode=crop&h=158&w=158&anchor=middlecenter" />
+                                              </div>
+                                              <div class="d-inline-block" style="width: 369px; padding: 10px 12px 10px 12px; ">
+                                                <h5 class="m-0">@Text.First(item.Title, Dnn.Tab.Title, Dnn.Tab.TabName)</h5>
+                                                <div class="m-0">
+                                                  <p class="m-0">
+                                                    @if (item.Text != null && item.Text != "")
+                                                    {
+                                                      @Html.Raw(item.Text)
+                                                    }
+                                                    else
+                                                    {
+                                                      @Dnn.Tab.Description
+                                                    }
+                                                  </p>
+                                                </div>
+                                                <p class="mb-0">
+                                                  <a href="@Dnn.Tab.FullUrl" class="stretched-link tet-decoration-none">@Dnn.Portal.PortalAlias.HTTPAlias.Replace("/en-ca","").Replace("/fr-ca","")</a>
+                                                </p>
+                                              </div> *@
+
+                                        </div>
+                                      </div>
+                }
+              }
+              else
+              {
+                <div class="col-12 p-3" @Edit.TagToolbar(item)>
+                  <div class="border border-info p-3">
+                    <p><strong>Open Graph:</strong></p>
+                    <p>Multiple Open Graph settings detected. Please ensure only 1 Open Graph item is added to the page.
+                      Until this is resolved the default settings for Open Graph will be used.
+                    </p>
+                    <div class="row">
+                      @if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200 || AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200)
+                          && (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
+                      {
+                        <div class="col-12 p-3" >
+                          <div class="border border-info p-3">
+                            <p><strong>Auto-Generated OpenGraph:</strong></p>
+                            <p>Selected image is too small. Must be a minimum of 200px X 200px.</p>
+                            <div class="row">
+                                                              <div class="col-12 pt-3">
+                                                                <p><strong>Twitter Card Additions:</strong></p>
+                                                                @Html.Raw(twitterOverride)
+                                                              </div>
+                                                            </div>
+                          </div>
+                        </div>
+                      }
+                      else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 315)
+                      && (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
+                      {
+                        <div class="col-12 p-3" >
+                          <div class="border border-info p-3">
+                            <p><strong>Auto-Generated OpenGraph:</strong></p>
+                            <table style="width: 527px; height: 158px; border:">
+                              <tbody style="background-color: #f2f3f5; border: 1px solid #dadde1;">
+                                <tr style="height:158px;">
+                                  <td class="p-0" style="width: 158px; ">
+                                    <img src='@(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=158&w=158&anchor=middlecenter")' />
+                                  </td>
+                                  <td style="width: 369px; font-family: Helvetica, Arial, snas-serif; padding:10px 12px;">
+                                    <div style="color: #606770; font-size: 12px; line-height: 11px;  text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                                    <div style="font-weight: 600; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
+                                    <div style="margin-top: 3px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
+                                      @Dnn.Tab.Description
+                                    </div>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                            <div class="row">
+                                                              <div class="col-12 pt-3">
+                                                                <p><strong>Twitter Card Additions:</strong></p>
+                                                                @Html.Raw(twitterOverride)
+                                                              </div>
+                                                            </div>
+                          </div>
+                        </div>
+                      }
+                      else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
+                      || (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
+                      {
+                                            <div class="col-12 p-3" >
+                                              <div class="border border-info p-3">
+                                                <p><strong>Auto-Generated OpenGraph:</strong></p>
+                                                <table style="width: 527px; height: 351.641px;">
+                                                  <tbody style="background-color: #f2f3f5; border: 1px solid #dadde1;">
+                                                    <tr style="height:274px;">
+                                                      <td class="p-0" style="width: 527px; ">
+                                                        <img src='@(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=274&w=527&anchor=middlecenter")' />
+                                                      </td>
+                                                    </tr>
+                                                    <tr>
+                                                      <td style="width: 527px; height: 78px; font-family: Helvetica, Arial, snas-serif; padding:10px 12px;  ">
+                                                        <div style="color: #606770; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; line-height: 16px; text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                                                        <div style="font-weight: 600; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
+                                                        <div style="margin-top: 3px; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 80px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
+                                                            @Dnn.Tab.Description
+                                                        </div>
+                                                      </td>
+                                                    </tr>
+                                                  </tbody>
+                                                </table>
+                                                <div class="row">
+                                                              <div class="col-12 pt-3">
+                                                                <p><strong>Twitter Card Additions:</strong></p>
+                                                                @Html.Raw(twitterOverride)
+                                                              </div>
+                                                            </div>
+                                              </div>
+                                            </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+
+            }
+            else if (item.Type == "jsonld" && AsList(Data).Where(a => (a.Type == "jsonld")).Count() == 1)
+            {
+              @* jsonLdDisplayed = true; *@
+                                    <div class="col-12 p-3" @Edit.TagToolbar(item)>
+                                      <div class="border border-info p-3">
+                                        <div class="row m-0">
+                                          <div class="col-10">
+                                            <p><strong>JSON-LD:</strong></p>
+                                          </div>
+                                          <div class="col-2 d-flex justify-content-end">
+                                            <a href="https://json-ld.org/" title="JSON-LD"><img style="border:0px;" width="64" src="https://json-ld.org/images/json-ld-logo-64.png" alt="JSON-LD-logo-64"/></a>
+                                          </div>
+                                          <div class="row m-0">
+                                            <div class="col-2 d-flex justify-content-end">
+                                              <p>Title: </p>
+                                            </div>
+                                            <div class="col-10">
+                                              <p>@(jsonLd["headline"] != "" && jsonLd["headline"] != null ? jsonLd["headline"] : jsonLdLocalBusiness["name"] != "" && jsonLdLocalBusiness["name"] != null ? jsonLdLocalBusiness["name"] : "Not Found")</p>
+                                            </div>
+                                            <div class="col-2 mt-2 d-flex justify-content-end">
+                                              <p>Page Description: </p>
+                                            </div>
+                                            <div class="col-10 mt-2">
+                                              <p>@(jsonLd["abstract"] != "" && jsonLd["abstract"] != null ? jsonLd["abstract"] : Dnn.Tab.Description)</p>
+                                            </div>
+                                            <div class="col-2 mt-2 d-flex justify-content-end">
+                                              <p>Main Image (Border added to show edge of image): </p>
+                                            </div>
+                                            <div class="col-10 mt-3 p-0 border border-info" style="border-width: medium !important;">
+                                              <img src='@AsList(jsonLd["image"]).First()["url"]' style="width: 100%;"></img>
+                                            </div>
+                                          </div>
+
+                                        </div>
+                                        <div class="row mx-0 mt-5">
+                                          <div class="col-12 pt-3">
+                                            <p><strong>JSON-LD Script Tag Contents:</strong></p>
+                                          </div>
+                                          <div class="col">
+                                            <pre>@JsonConvert.SerializeObject(jsonLdGraph, Formatting.Indented)</pre>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+            }
+
+            else if (item.Type == "customjsonld")
+            {
+              @* jsonLdDisplayed = true; *@
+                                    <div class="col-12 p-3" @Edit.TagToolbar(item)>
+                                      <div class="border border-info p-3">
+                                        <div class="row mx-0 mt-5">
+                                          <div class="col-12 pt-3">
+                                            <p><strong>Custom JSON-LD Script Tag Contents:</strong></p>
+                                          </div>
+                                          <div class="col">
+                                            <pre>@Newtonsoft.Json.Linq.JObject.Parse(Tags.Strip(item.CustomJsonLd))</pre>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+            }
+            else if (item.Type == "event")
+            {
+              <div class="col-12 p-3" @Edit.TagToolbar(item)>
+                <div class="border border-info p-3">
+                  <div class="row mx-0 mt-5">
+                    <div class="col-12 pt-3">
+                      <p><strong>(Possible Future Feature) Physical Event</strong></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+            else if (item.Type == "onlineEvent")
+            {
+              <div class="col-12 p-3" @Edit.TagToolbar(item)>
+                <div class="border border-info p-3">
+                  <div class="row mx-0 mt-5">
+                    <div class="col-12 pt-3">
+                      <p><strong>(Possible Future Feature) Online Event</strong></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+          if(AsList(Data).Where(a => (a.Type == "jsonld")).Count() > 1)
+            {
+              <div class="col-12 p-3" >
+                <div class="border border-info p-3">
+                  <div class="row m-0">
+                    <div class="col-10">
+                      <p><strong>JSON-LD:</strong></p>
+                      <p>Multiple JSON-LD settings detected. Please ensure only 1 JSON-LD item is added to the page. Until this is resolved the default settings for JSON-LD will be used.
+                        If you want to add more content to the JSON-LD script, do so with the "Custom JSON LD" option.
+                      </p>
+                      <p>Hover over the following to access editing:</p>
+                      <ul class="pl-3" style="max-width: 300px;">
+                        @{int counter = 1;}
+                        @foreach(var item in AsList(Data).Where(a => (a.Type == "jsonld")).Select(b => b))
+                        {
+                          <li class="hoverHighlight" @Edit.TagToolbar(item)>
+                            JSON-LD #@(counter++)
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                    <div class="col-2 d-flex justify-content-end">
+                      <a href="https://json-ld.org/" title="JSON-LD"><img style="border:0px;" width="64" src="https://json-ld.org/images/json-ld-logo-64.png" alt="JSON-LD-logo-64"/></a>
+                    </div>
+                    <div class="row m-0">
+                      <div class="col-12 p-3">
+                        <div class="border border-info p-3">
+                          <div class="row m-0">
+                            <div class="col-10">
+                              <p><strong>Auto-Generated JSON-LD:</strong></p>
+                            </div>
+                            <div class="col-2 d-flex justify-content-end">
+                              <a href="https://json-ld.org/" title="JSON-LD"><img style="border:0px;" width="64" src="https://json-ld.org/images/json-ld-logo-64.png" alt="JSON-LD-logo-64"/></a>
+                            </div>
+                            <div class="row m-0">
+                              <div class="col-3 d-flex justify-content-end">
+                                <p>Title: </p>
+                              </div>
+                              <div class="col-9">
+                                @{object output;}
+                                @* <p>@(jsonLd["headline"] != "" && jsonLd["headline"] != null ? jsonLd["headline"] : jsonLdLocalBusiness["name"] != "" && jsonLdLocalBusiness["name"] != null ? jsonLdLocalBusiness["name"] : "Not Found")</p> *@
+                                <p>@(jsonLdSite.TryGetValue("headline", out output) ? output : jsonLdLocalBusiness.TryGetValue("name", out output) ? output : "Not Found")</p>
+                              </div>
+                              <div class="col-3 mt-2 d-flex justify-content-end">
+                                <p>Page Description: </p>
+                              </div>
+                              <div class="col-9 mt-2">
+                                <p>@(jsonLdSite.TryGetValue("abstract", out output) ? output : Dnn.Tab.Description)</p>
+                              </div>
+                              <div class="col-3 mt-2 d-flex justify-content-end">
+                                <p>Main Image (Border added to show edge of image): </p>
+                              </div>
+                              <div class="col-9 mt-3 p-0 border border-info" style="border-width: medium !important;">
+                                @* <img src='@AsList(jsonLdSite["image"]).First()["url"]' style="max-width: 75%;"></img> *@
+                                @if(jsonLdSite.TryGetValue("image", out output))
+                                {
+                                  <img src=@output style="width: 100%;"></img>
+                                }
+                                else
+                                {
+                                  <p>There was a problem accessing an image for the page.</p>
+                                }
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="row">
+                            <div class="col-12 pt-3">
+                              <p><strong>JSON-LD Script Contents:</strong></p>
+                            </div>
+                            <div class="col-12">
+                              <pre>@JsonConvert.SerializeObject(jsonLdGraph, Formatting.Indented)</pre>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+        }
+                </div>
+        </div>
+      </section>
+}
+
+<style type="text/css">
+  .open-graph-card {
+    width: 438px;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .text-smallest {
+    font-size: 13px;
+  }
+
+  li.hoverHighlight:hover {
+    background-color: lightgrey;
+  }
+</style>
+
+@*
+@functions
+{
+  public Dictionary<string, object> ParseJson()
+} *@
