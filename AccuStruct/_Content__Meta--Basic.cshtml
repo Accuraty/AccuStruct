@@ -41,6 +41,28 @@
   }
 } *@
 
+@functions{
+  public static int imageGetWidthfromFile(string pathFile) {
+    if (System.IO.Path.GetExtension(pathFile) == ".svg")
+    {
+      return 0;
+    }
+    using (System.Drawing.Image sourceImage = System.Drawing.Image.FromFile(HttpContext.Current.Server.MapPath(pathFile))) {
+      return sourceImage.Width;
+    }
+  }
+
+  public static int imageGetHeightfromFile(string pathFile) {
+    if (System.IO.Path.GetExtension(pathFile) == ".svg")
+    {
+      return 0;
+    }
+    using (System.Drawing.Image sourceImage = System.Drawing.Image.FromFile(HttpContext.Current.Server.MapPath(pathFile))) {
+      return sourceImage.Height;
+    }
+  }
+}
+
 @{
   var jsonLd = new Dictionary<string, object> { };
   var jsonLdLocalBusiness = new Dictionary<string, object> { };
@@ -80,7 +102,7 @@
         { "postalCode", App.Settings.PostalCode},
         { "addressCountry", "US"}
       }},
-      { "url", Dnn.Tab.FullUrl},
+      { "url", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
       {"email", App.Settings.Email},
       {"telephone", App.Settings.Phone},
       {"image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
@@ -95,10 +117,15 @@
       { "@context", "https://schema.org"},
       { "@type", "WebSite"},
       { "@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#website"},
+      { "isPartOf", new Dictionary<string,object>{
+          {"@id","https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#organization"}
+        }
+      },
       { "publisher", new Dictionary<string,object>{ {"@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#organization" }}},
       { "name", Dnn.Portal.PortalName},
       { "url", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
       { "image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
+      { "abstract", Tags.Strip(Dnn.Tab.Description)}
     };
     @* jsonLdSite.Add("publisher", ) *@
     @* List<Object> jsonLdArr = new List<Object>(); *@
@@ -114,18 +141,18 @@
     HtmlPage.AddOpenGraph("description", Dnn.Tab.Description);
     string resize = "";
     string resizeTwitter = "";
-    if(AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 1200 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 630)
+    if(imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 1200 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 630)
     {
       resize = "?h=630&w=1200&anchor=middlecenter";
       resizeTwitter = "?h=600&w=1200&anchor=middlecenter";
     }
-    else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
-    || (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
+    else if((imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
+    || (imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
     {
       resize = "?h=315&w=600&anchor=middlecenter";
       resizeTwitter = "?h=300&w=157&anchor=middlecenter";
     }
-    else if(AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 300 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 157)
+    else if(imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 300 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 157)
     {
       resize = "?h=200&w=200&anchor=middlecenter";
       resizeTwitter = "?h=300&w=157&anchor=middlecenter";
@@ -140,8 +167,8 @@
     HtmlPage.AddOpenGraph("url", Dnn.Tab.FullUrl);
     HtmlPage.AddOpenGraph("title", Text.First(Dnn.Tab.Title, Dnn.Tab.TabName));
     @* Twitter card additions: *@
-    HtmlPage.AddMeta("twitter:card", "summary");
-    twitterOverride += "\"twitter:card\": \"summary\" <br>";
+    HtmlPage.AddMeta("twitter:card", Dnn.Tab.Description);
+    twitterOverride += "\"twitter:card\": \"" + Dnn.Tab.Description+ "\" <br>";
     if(App.Settings.TwitterHandle != "@" && App.Settings.TwitterHandle != "")
     {
       HtmlPage.AddMeta("twitter:site", App.Settings.TwitterHandle);
@@ -169,7 +196,7 @@
         { "postalCode", App.Settings.PostalCode},
         { "addressCountry", "US"}
       }},
-      { "url", Dnn.Tab.FullUrl},
+      { "url", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
       {"email", App.Settings.Email},
       {"telephone", App.Settings.Phone},
       {"image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
@@ -185,27 +212,32 @@
       { "@type", "WebSite"},
       { "@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#website"},
       { "publisher", new Dictionary<string,object>{ {"@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#organization" }}},
+      { "isPartOf", new Dictionary<string,object>{
+          {"@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#organization"}
+        }
+      },
       { "name", Dnn.Portal.PortalName},
       { "url", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
       { "image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
+      { "abstract", Tags.Strip(Dnn.Tab.Description)}
     };
 
     if (!AsList(Data).Where(a => (a.Type == "og")).Any() || AsList(Data).Where(a => (a.Type == "og")).Count() > 1)
     {
       string resize = "";
       string resizeTwitter = "";
-      if(AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 1200 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 630)
+      if(imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 1200 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 630)
       {
         resize = "?h=630&w=1200&anchor=middlecenter";
         resizeTwitter = "?h=600&w=1200&anchor=middlecenter";
       }
-      else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
-      || (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
+      else if((imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
+      || (imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
       {
         resize = "?h=315&w=600&anchor=middlecenter";
         resizeTwitter = "?h=300&w=157&anchor=middlecenter";
       }
-      else if(AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 300 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 157)
+      else if(imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 300 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 157)
       {
         resize = "?h=200&w=200&anchor=middlecenter";
         resizeTwitter = "?h=300&w=157&anchor=middlecenter";
@@ -223,8 +255,8 @@
       HtmlPage.AddOpenGraph("url", Dnn.Tab.FullUrl);
       HtmlPage.AddOpenGraph("title", Text.First(Dnn.Tab.Title, Dnn.Tab.TabName));
       @* Twitter card additions: *@
-      HtmlPage.AddMeta("twitter:card", "summary");
-      twitterOverride += "\"twitter:card\": \"summary\"<br>";
+      HtmlPage.AddMeta("twitter:card", Dnn.Tab.Description);
+      twitterOverride += "\"twitter:card\": \"" + Dnn.Tab.Description + "\"<br>";
       if(App.Settings.TwitterHandle != "@" && App.Settings.TwitterHandle != "")
       {
         HtmlPage.AddMeta("twitter:site", App.Settings.TwitterHandle);
@@ -268,8 +300,8 @@
         HtmlPage.AddOpenGraph("url", Dnn.Tab.FullUrl);
         HtmlPage.AddOpenGraph("title", Text.First(item.Title, Dnn.Tab.Title, Dnn.Tab.TabName));
         @* Twitter card additions: *@
-        HtmlPage.AddMeta("twitter:card", "summary");
-        twitterOverride += "\"twitter:card\": \"summary\"<br>";
+        HtmlPage.AddMeta("twitter:card", Dnn.Tab.Description);
+        twitterOverride += "\"twitter:card\": \"" + Dnn.Tab.Description + "\"<br>";
         if(App.Settings.TwitterHandle != "@" && App.Settings.TwitterHandle != "")
         {
           HtmlPage.AddMeta("twitter:site", App.Settings.TwitterHandle);
@@ -415,7 +447,7 @@
             <div class="col">
               <h2>Hey @Dnn.User.DisplayName! These are this page's hidden Structure Data Cards.</h2>
               <div class="alert alert-info mb-4 mb-lc-0">
-                <p class="mb-0">@Dnn.Portal.LogoFile If you're seeing this, it's because you're logged in with an administrator account and you can
+                <p class="mb-0">If you're seeing this, it's because you're logged in with an administrator account and you can
                   edit this. Regular users won't see this card - it's just for us to modify the OpenGraph so that when you
                   share this page on Twitter or Facebook, the links will appear in a nice card style. This is not
                   representative of a real Twitter or Facebook card but it's just to give you an idea of what might appear.
@@ -518,8 +550,8 @@
         {
 
                         @* <div class="row" @Edit.TagToolbar(Content)> *@
-                          if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200 || AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200)
-                          && (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
+                          if((imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200 || imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200)
+                          && (imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
                           {
                             <div class="col-12 p-3" >
                               <div class="border border-info p-3">
@@ -534,8 +566,8 @@
                               </div>
                             </div>
                           }
-                          else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 315)
-                          && (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
+                          else if((imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 600 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 315)
+                          && (imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
                           {
                             <div class="col-12 p-3" >
                               <div class="border border-info p-3">
@@ -565,8 +597,8 @@
                               </div>
                             </div>
                           }
-                          else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
-                          || (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
+                          else if((imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
+                          || (imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
                           {
                                                 <div class="col-12 p-3" >
                                                   <div class="border border-info p-3">
@@ -746,8 +778,8 @@
                                   </div>
                                 </div>
                               </div> *@
-              if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200 || AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200)
-                          && (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
+              if((imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200 || imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200)
+                          && (imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
               {
                 <div class="col-12 p-3" >
                   <div class="border border-info p-3">
@@ -762,8 +794,8 @@
                   </div>
                 </div>
               }
-              else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 315)
-              && (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
+              else if((imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 600 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 315)
+              && (imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
               {
                 <div class="col-12 p-3" >
                   <div class="border border-info p-3">
@@ -793,8 +825,8 @@
                   </div>
                 </div>
               }
-              else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
-              || (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
+              else if((imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
+              || (imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
               {
                                     <div class="col-12 p-3" >
                                       <div class="border border-info p-3">
@@ -838,8 +870,8 @@
             {
               if(AsList(Data).Where(a => (a.Type == "og")).Count() == 1)
               {
-                if((AccuKit.imageGetWidthfromFile(item.Image) < 200 || AccuKit.imageGetHeightfromFile(item.Image) < 200)
-                  && (AccuKit.imageGetWidthfromFile(item.Image) != 0 || AccuKit.imageGetHeightfromFile(item.Image) != 0))
+                if((imageGetWidthfromFile(item.Image) < 200 || imageGetHeightfromFile(item.Image) < 200)
+                  && (imageGetWidthfromFile(item.Image) != 0 || imageGetHeightfromFile(item.Image) != 0))
                 {
                   <div class="col-12 p-3" @Edit.TagToolbar(item)>
                     <div class="border border-info p-3">
@@ -854,8 +886,8 @@
                     </div>
                   </div>
                 }
-                else if((AccuKit.imageGetWidthfromFile(item.Image) <= 600 && AccuKit.imageGetHeightfromFile(item.Image) <= 315)
-                && (AccuKit.imageGetWidthfromFile(item.Image) != 0 && AccuKit.imageGetHeightfromFile(item.image) != 0))
+                else if((imageGetWidthfromFile(item.Image) <= 600 && imageGetHeightfromFile(item.Image) <= 315)
+                && (imageGetWidthfromFile(item.Image) != 0 && imageGetHeightfromFile(item.image) != 0))
                 {
                   <div class="col-12 p-3" @Edit.TagToolbar(item)>
                     <div class="border border-info p-3">
@@ -892,8 +924,8 @@
                     </div>
                   </div>
                 }
-                else if((AccuKit.imageGetWidthfromFile(item.Image) >= 600 && AccuKit.imageGetHeightfromFile(item.Image) >= 315)
-                || (AccuKit.imageGetWidthfromFile(item.Image) == 0 && AccuKit.imageGetHeightfromFile(item.Image) == 0))
+                else if((imageGetWidthfromFile(item.Image) >= 600 && imageGetHeightfromFile(item.Image) >= 315)
+                || (imageGetWidthfromFile(item.Image) == 0 && imageGetHeightfromFile(item.Image) == 0))
                 {
                                       <div class="col-12 p-3" @Edit.TagToolbar(item)>
                                         <div class="border border-info p-3">
@@ -964,8 +996,8 @@
                       Until this is resolved the default settings for Open Graph will be used.
                     </p>
                     <div class="row">
-                      @if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200 || AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200)
-                          && (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
+                      @if((imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200 || imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) < 200)
+                          && (imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
                       {
                         <div class="col-12 p-3" >
                           <div class="border border-info p-3">
@@ -980,8 +1012,8 @@
                           </div>
                         </div>
                       }
-                      else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 315)
-                      && (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
+                      else if((imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 600 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) <= 315)
+                      && (imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) != 0))
                       {
                         <div class="col-12 p-3" >
                           <div class="border border-info p-3">
@@ -1011,8 +1043,8 @@
                           </div>
                         </div>
                       }
-                      else if((AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
-                      || (AccuKit.imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && AccuKit.imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
+                      else if((imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 600 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 315)
+                      || (imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) == 0))
                       {
                                             <div class="col-12 p-3" >
                                               <div class="border border-info p-3">
