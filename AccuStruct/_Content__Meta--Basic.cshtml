@@ -2,6 +2,7 @@
 @using ToSic.Razor.Blade
 @using Newtonsoft.Json
 @using System.Linq
+@using System.Net
 
 @* @functions{
   public Dictionary<string,object> recursiveJsonParse(string json){
@@ -125,7 +126,7 @@
       { "name", Dnn.Portal.PortalName},
       { "url", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
       { "image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
-      { "abstract", Tags.Strip(Dnn.Tab.Description)}
+      { "abstract", WebUtility.HtmlDecode(Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description)}
     };
     @* jsonLdSite.Add("publisher", ) *@
     @* List<Object> jsonLdArr = new List<Object>(); *@
@@ -138,7 +139,7 @@
     HtmlPage.AddJsonLd(jsonLdArr);
     HtmlPage.AddOpenGraph("site_name", Dnn.Portal.PortalName);
     HtmlPage.AddOpenGraph("type", "website");
-    HtmlPage.AddOpenGraph("description", Dnn.Tab.Description);
+    HtmlPage.AddOpenGraph("description", WebUtility.HtmlDecode(Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description));
     string resize = "";
     string resizeTwitter = "";
     if(imageGetWidthfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 1200 && imageGetHeightfromFile(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile) >= 630)
@@ -167,8 +168,8 @@
     HtmlPage.AddOpenGraph("url", Dnn.Tab.FullUrl);
     HtmlPage.AddOpenGraph("title", Text.First(Dnn.Tab.Title, Dnn.Tab.TabName));
     @* Twitter card additions: *@
-    HtmlPage.AddMeta("twitter:card", Dnn.Tab.Description);
-    twitterOverride += "\"twitter:card\": \"" + Dnn.Tab.Description+ "\" <br>";
+    HtmlPage.AddMeta("twitter:card", WebUtility.HtmlDecode(Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description));
+    twitterOverride += "\"twitter:card\": \"" + WebUtility.HtmlDecode( Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description) + "\" <br>";
     if(App.Settings.TwitterHandle != "@" && App.Settings.TwitterHandle != "")
     {
       HtmlPage.AddMeta("twitter:site", App.Settings.TwitterHandle);
@@ -219,7 +220,7 @@
       { "name", Dnn.Portal.PortalName},
       { "url", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
       { "image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
-      { "abstract", Tags.Strip(Dnn.Tab.Description)}
+      { "abstract", WebUtility.HtmlDecode(Dnn.Tab.Description)}
     };
 
     if (!AsList(Data).Where(a => (a.Type == "og")).Any() || AsList(Data).Where(a => (a.Type == "og")).Count() > 1)
@@ -249,14 +250,14 @@
       }
       HtmlPage.AddOpenGraph("site_name", Dnn.Portal.PortalName);
       HtmlPage.AddOpenGraph("type", "website");
-      HtmlPage.AddOpenGraph("description", Dnn.Tab.Description);
+      HtmlPage.AddOpenGraph("description", WebUtility.HtmlDecode(Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description));
       HtmlPage.AddOpenGraph("image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resize));
       HtmlPage.AddOpenGraph("image:alt", (Dnn.Portal.PortalName + " Logo"));
       HtmlPage.AddOpenGraph("url", Dnn.Tab.FullUrl);
       HtmlPage.AddOpenGraph("title", Text.First(Dnn.Tab.Title, Dnn.Tab.TabName));
       @* Twitter card additions: *@
-      HtmlPage.AddMeta("twitter:card", Dnn.Tab.Description);
-      twitterOverride += "\"twitter:card\": \"" + Dnn.Tab.Description + "\"<br>";
+      HtmlPage.AddMeta("twitter:card", WebUtility.HtmlDecode(Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description));
+      twitterOverride += "\"twitter:card\": \"" + WebUtility.HtmlDecode(Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description) + "\"<br>";
       if(App.Settings.TwitterHandle != "@" && App.Settings.TwitterHandle != "")
       {
         HtmlPage.AddMeta("twitter:site", App.Settings.TwitterHandle);
@@ -280,7 +281,7 @@
         string myImage = "https://" + Dnn.Portal.PortalAlias.HTTPAlias + item.Image + "?h=630&w=1200&anchor=" + item.ImageAnchor + mode;
         HtmlPage.AddOpenGraph("site_name", Dnn.Portal.PortalName);
         HtmlPage.AddOpenGraph("type", "website");
-        HtmlPage.AddOpenGraph("description", Text.First(item.Text, Dnn.Tab.Description));
+        HtmlPage.AddOpenGraph("description", WebUtility.HtmlDecode(Text.First(Tags.Strip(item.Text).Length >= 200 ? Tags.Strip(item.Text).Substring(0, 196) + "..." : Tags.Strip(item.Text), Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description)));
         if (item.Image != null && item.Image != "")
         {
           HtmlPage.AddOpenGraph("image", myImage);
@@ -300,8 +301,8 @@
         HtmlPage.AddOpenGraph("url", Dnn.Tab.FullUrl);
         HtmlPage.AddOpenGraph("title", Text.First(item.Title, Dnn.Tab.Title, Dnn.Tab.TabName));
         @* Twitter card additions: *@
-        HtmlPage.AddMeta("twitter:card", Dnn.Tab.Description);
-        twitterOverride += "\"twitter:card\": \"" + Dnn.Tab.Description + "\"<br>";
+        HtmlPage.AddMeta("twitter:card", WebUtility.HtmlDecode(Text.First(Tags.Strip(item.Text).Length >= 200 ? Tags.Strip(item.Text).Substring(0, 196) + "..." : Tags.Strip(item.Text), Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description)));
+        twitterOverride += "\"twitter:card\": \"" + WebUtility.HtmlDecode(Text.First(Tags.Strip(item.Text).Length >= 200 ? Tags.Strip(item.Text).Substring(0, 196) + "..." : Tags.Strip(item.Text), Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description)) + "\"<br>";
         if(App.Settings.TwitterHandle != "@" && App.Settings.TwitterHandle != "")
         {
           HtmlPage.AddMeta("twitter:site", App.Settings.TwitterHandle);
@@ -321,7 +322,7 @@
           { "@type", "WebPage"},
           { "isPartOf", new Dictionary<string,object> {{"id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#website"}}},
           { "headline", Text.First(item.Title, Dnn.Tab.Title)},
-          { "abstract", Tags.Strip(item.Text)},
+          { "abstract", WebUtility.HtmlDecode(Text.First(Tags.Strip(item.Text), Dnn.Tab.Description))},
           { "url", Dnn.Tab.FullUrl}
         };
         if (item.Image != null && item.Image != "")
@@ -479,24 +480,13 @@
                     <a class="btn btn-primary" href="https://developers.facebook.com/tools/debug/?q=@Dnn.Tab.FullUrl" target="_blank">
                       Facebook
                     </a>
-                    <p>Image Notes:</p>
-                    <ul>
-                      <li>Minimum height and width of 200px.</li> 
-                      <li>Recommended size: 1200px X 630px</li>
-                      <li>Smaller than 600px width will use the small square thumbnail</li>
-                      <li>If either side is under 200px the image will be discarded and Facebook will go through the markup,
-                         and use the first image that is over 200px X 200px</li>
-                    </ul>
+                    <p></p>
                   </div>
                   <div class="col-sm-3 border border-info p-3">
                     <a class="btn btn-primary" href="https://www.linkedin.com/post-inspector/inspect/@Dnn.Tab.FullUrl" target="_blank">
                       Linkedin
                     </a>
-                    <p>Image Notes:</p>
-                    <ul>
-                      <li>Required: 80px X 150px</li>
-                      <li>Recommended: 1200px X 627px, or as close to 1:91:1 aspect ratio as possible</li>
-                    </ul>
+                    <p></p>
                   </div>
                   <div class="col-sm-3 border border-info p-3">
                     <a class="btn btn-primary" href="https://cards-dev.twitter.com/validator" target="_blank">
@@ -592,8 +582,8 @@
                                       <td style="width: 369px; font-family: Helvetica, Arial, snas-serif; padding:10px 12px;">
                                         <div style="color: #606770; font-size: 12px; line-height: 11px;  text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
                                         <div style="font-weight: 600; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
-                                        <div style="margin-top: 3px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
-                                          @Dnn.Tab.Description
+                                        <div style="margin-top: 3px; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 80px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
+                                          @WebUtility.HtmlDecode(Dnn.Tab.Description)
                                         </div>
                                       </td>
                                     </tr>
@@ -626,7 +616,7 @@
                                                             <div style="color: #606770; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; line-height: 16px; text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
                                                             <div style="font-weight: 600; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
                                                             <div style="margin-top: 3px; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 80px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
-                                                                @Dnn.Tab.Description
+                                                                @WebUtility.HtmlDecode(Dnn.Tab.Description)
                                                             </div>
                                                           </td>
                                                         </tr>
@@ -679,7 +669,7 @@
                                         <p>Page Description: </p>
                                       </div>
                                       <div class="col-9 mt-2">
-                                        <p>@(jsonLdSite.TryGetValue("abstract", out output) ? output : Dnn.Tab.Description)</p>
+                                        <p>@(jsonLdSite.TryGetValue("abstract", out output) ? output : WebUtility.HtmlDecode(Dnn.Tab.Description))</p>
                                       </div>
                                       <div class="col-3 mt-2 d-flex justify-content-end">
                                          <p>Main Image (Border added to show edge of image): </p>
@@ -735,7 +725,7 @@
                                         <p>Page Description: </p>
                                       </div>
                                       <div class="col-9 mt-2">
-                                        <p>@(jsonLdSite.TryGetValue("abstract", out output) ? output : Dnn.Tab.Description)</p>
+                                        <p>@(jsonLdSite.TryGetValue("abstract", out output) ? output : WebUtility.HtmlDecode(Dnn.Tab.Description))</p>
                                       </div>
                                       <div class="col-3 mt-2 d-flex justify-content-end">
                                          <p>Main Image (Border added to show edge of image): </p>
@@ -820,8 +810,8 @@
                           <td style="width: 369px; font-family: Helvetica, Arial, snas-serif; padding:10px 12px;">
                             <div style="color: #606770; font-size: 12px; line-height: 11px;  text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
                             <div style="font-weight: 600; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
-                            <div style="margin-top: 3px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
-                              @Dnn.Tab.Description
+                            <div style="margin-top: 3px; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 80px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
+                              @WebUtility.HtmlDecode(Dnn.Tab.Description)
                             </div>
                           </td>
                         </tr>
@@ -854,7 +844,7 @@
                                                 <div style="color: #606770; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; line-height: 16px; text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
                                                 <div style="font-weight: 600; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
                                                 <div style="margin-top: 3px; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 80px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
-                                                    @Dnn.Tab.Description
+                                                    @WebUtility.HtmlDecode(Dnn.Tab.Description)
                                                 </div>
                                               </td>
                                             </tr>
@@ -912,14 +902,14 @@
                             <td style="width: 369px; font-family: Helvetica, Arial, snas-serif; padding:10px 12px;">
                               <div style="color: #606770; font-size: 12px; line-height: 11px;  text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
                               <div style="font-weight: 600; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(item.Title, Dnn.Tab.Title, Dnn.Tab.TabName)</div>
-                              <div style="margin-top: 3px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
+                              <div style="margin-top: 3px; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 80px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
                                 @if (item.Text != null && item.Text != "")
                                 {
-                                  @Html.Raw(item.Text)
+                                  @WebUtility.HtmlDecode(Tags.Strip(item.Text))
                                 }
                                 else
                                 {
-                                  @Dnn.Tab.Description
+                                  @WebUtility.HtmlDecode(Dnn.Tab.Description)
                                 }
                               </div>
                             </td>
@@ -955,11 +945,11 @@
                                                   <div style="margin-top: 3px; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 80px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
                                                     @if (item.Text != null && item.Text != "")
                                                     {
-                                                      @Html.Raw(item.Text)
+                                                      @WebUtility.HtmlDecode(Tags.Strip(item.Text))
                                                     }
                                                     else
                                                     {
-                                                      @Dnn.Tab.Description
+                                                      @WebUtility.HtmlDecode(Dnn.Tab.Description)
                                                     }
                                                   </div>
                                                 </td>
@@ -1038,8 +1028,8 @@
                                   <td style="width: 369px; font-family: Helvetica, Arial, snas-serif; padding:10px 12px;">
                                     <div style="color: #606770; font-size: 12px; line-height: 11px;  text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
                                     <div style="font-weight: 600; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
-                                    <div style="margin-top: 3px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
-                                      @Dnn.Tab.Description
+                                    <div style="margin-top: 3px; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 80px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
+                                      @WebUtility.HtmlDecode(Dnn.Tab.Description)
                                     </div>
                                   </td>
                                 </tr>
@@ -1072,7 +1062,7 @@
                                                         <div style="color: #606770; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; line-height: 16px; text-transform: uppercase;">@Dnn.Portal.PortalAlias.HTTPAlias</div>
                                                         <div style="font-weight: 600; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 16px; line-height: 20px; margin-top: 3px; padding-top: 2px; color: #4b4f56;">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
                                                         <div style="margin-top: 3px; max-width: 503px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 80px; color: #606770; font-size: 14px; line-height: 20px; word-break: break-word;">
-                                                            @Dnn.Tab.Description
+                                                            @WebUtility.HtmlDecode(Dnn.Tab.Description)
                                                         </div>
                                                       </td>
                                                     </tr>
@@ -1116,7 +1106,7 @@
                                               <p>Page Description: </p>
                                             </div>
                                             <div class="col-10 mt-2">
-                                              <p>@(jsonLd["abstract"] != "" && jsonLd["abstract"] != null ? jsonLd["abstract"] : Dnn.Tab.Description)</p>
+                                              <p>@(jsonLd["abstract"] != "" && jsonLd["abstract"] != null ? jsonLd["abstract"] : WebUtility.HtmlDecode(Dnn.Tab.Description))</p>
                                             </div>
                                             <div class="col-2 mt-2 d-flex justify-content-end">
                                               <p>Main Image (Border added to show edge of image): </p>
@@ -1227,7 +1217,7 @@
                                 <p>Page Description: </p>
                               </div>
                               <div class="col-9 mt-2">
-                                <p>@(jsonLdSite.TryGetValue("abstract", out output) ? output : Dnn.Tab.Description)</p>
+                                <p>@(jsonLdSite.TryGetValue("abstract", out output) ? output : WebUtility.HtmlDecode(Dnn.Tab.Description))</p>
                               </div>
                               <div class="col-3 mt-2 d-flex justify-content-end">
                                 <p>Main Image (Border added to show edge of image): </p>
