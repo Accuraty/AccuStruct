@@ -442,6 +442,10 @@
 
 @if (Edit.Enabled)
 {
+  <details>
+    <summary class=" mb-3">
+      <span class="h5 text-monospace mx-3">AccuStruct: Manage and Customize the Structured Data for this Page</span>
+    </summary>
       <section class="py-5" @(AsList(Data).First().IsDemoItem ? Edit.TagToolbar(Content) : "")>
         <div class="container">
           <div class="row">
@@ -1255,6 +1259,7 @@
                 </div>
         </div>
       </section>
+  </details>
 }
 
 <style type="text/css">
