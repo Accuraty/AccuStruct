@@ -33,6 +33,7 @@
 }
 
 @{
+  string portalAlias = Dnn.Portal.PortalAlias.HTTPAlias.Split('/')[0];
   var jsonLd = new Dictionary<string, object> { };
   var jsonLdLocalBusiness = new Dictionary<string, object> { };
   var jsonLdGraph = new Dictionary<string, object> { };
@@ -62,7 +63,7 @@
     {
       { "@context", "https://schema.org"},
       { "@type", App.Settings.OrgType},
-      { "@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#organization"},
+      { "@id", "https://" + portalAlias + "/#organization"},
       { "name", Dnn.Portal.PortalName},
       { "address", new Dictionary<string, object> {
         { "@type", "PostalAddress"},
@@ -72,14 +73,14 @@
         { "postalCode", App.Settings.PostalCode},
         { "addressCountry", "US"}
       }},
-      { "url", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
+      { "url", "https://" + portalAlias},
       {"email", App.Settings.Email},
       {"telephone", App.Settings.Phone},
-      {"image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
+      {"image", ("https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
       { "brand", new Dictionary<string, object>{
         {"@type", "Brand"},
         {"name", Dnn.Portal.PortalName},
-        {"logo", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=200&w=200&anchor=middlecenter")}
+        {"logo", ("https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=200&w=200&anchor=middlecenter")}
       }},
       {"sameAs", socialLinks}
     };
@@ -87,15 +88,15 @@
     {
       { "@context", "https://schema.org"},
       { "@type", "WebSite"},
-      { "@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#website"},
+      { "@id", "https://" + portalAlias + "/#website"},
       { "isPartOf", new Dictionary<string,object>{
-          {"@id","https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#organization"}
+          {"@id","https://" + portalAlias + "/#organization"}
         }
       },
-      { "publisher", new Dictionary<string,object>{ {"@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#organization" }}},
+      { "publisher", new Dictionary<string,object>{ {"@id", "https://" + portalAlias + "/#organization" }}},
       { "name", Dnn.Portal.PortalName},
-      { "url", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
-      { "image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
+      { "url", "https://" + portalAlias},
+      { "image", ("https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
       { "abstract", WebUtility.HtmlDecode(Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description)}
     };
     @* jsonLdSite.Add("publisher", ) *@
@@ -134,7 +135,7 @@
       resizeTwitter = "?h=144&w=144&anchor=middlecenter";
       resize = "?h=200&w=200&anchor=middlecenter";
     }
-    HtmlPage.AddOpenGraph("image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resize));
+    HtmlPage.AddOpenGraph("image", ("https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resize));
     HtmlPage.AddOpenGraph("image:alt", (Dnn.Portal.PortalName + " Logo"));
     HtmlPage.AddOpenGraph("url", Dnn.Tab.FullUrl);
     HtmlPage.AddOpenGraph("title", Text.First(Dnn.Tab.Title, Dnn.Tab.TabName));
@@ -146,8 +147,8 @@
       HtmlPage.AddMeta("twitter:site", App.Settings.TwitterHandle);
       twitterOverride += "\"twitter:site\": \"" + App.Settings.TwitterHandle + "\"<br>";
     }
-    HtmlPage.AddMeta("twitter:image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resizeTwitter));
-    twitterOverride += "\"twitter:image\": \"https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resizeTwitter + "\"<br>";
+    HtmlPage.AddMeta("twitter:image", ("https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resizeTwitter));
+    twitterOverride += "\"twitter:image\": \"https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resizeTwitter + "\"<br>";
     @* twitterOverride += "\"\": " +  +"<br>"; *@
     @* Pinterest rich pin additions: *@
   }
@@ -157,7 +158,7 @@
     {
       @* { "@context", "https://schema.org"}, *@
       { "@type", App.Settings.OrgType},
-      { "@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
+      { "@id", "https://" + portalAlias},
       { "name", Dnn.Portal.PortalName},
       { "address", new Dictionary<string, object> {
         { "@type", "PostalAddress"},
@@ -167,14 +168,14 @@
         { "postalCode", App.Settings.PostalCode},
         { "addressCountry", "US"}
       }},
-      { "url", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
+      { "url", "https://" + portalAlias},
       {"email", App.Settings.Email},
       {"telephone", App.Settings.Phone},
-      {"image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
+      {"image", ("https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
       { "brand", new Dictionary<string, object>{
         {"@type", "Brand"},
         {"name", Dnn.Portal.PortalName},
-        {"logo", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=200&w=200&anchor=middlecenter")}
+        {"logo", ("https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=200&w=200&anchor=middlecenter")}
       }},
       {"sameAs", socialLinks}
     };
@@ -182,15 +183,15 @@
     {
       { "@context", "https://schema.org"},
       { "@type", "WebSite"},
-      { "@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#website"},
-      { "publisher", new Dictionary<string,object>{ {"@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#organization" }}},
+      { "@id", "https://" + portalAlias + "/#website"},
+      { "publisher", new Dictionary<string,object>{ {"@id", "https://" + portalAlias + "/#organization" }}},
       { "isPartOf", new Dictionary<string,object>{
-          {"@id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#organization"}
+          {"@id", "https://" + portalAlias + "/#organization"}
         }
       },
       { "name", Dnn.Portal.PortalName},
-      { "url", "https://" + Dnn.Portal.PortalAlias.HTTPAlias},
-      { "image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
+      { "url", "https://" + portalAlias},
+      { "image", ("https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile)},
       { "abstract", WebUtility.HtmlDecode(Dnn.Tab.Description)}
     };
     if (!AsList(Data).Where(a => (a.Type == "og")).Any() || AsList(Data).Where(a => (a.Type == "og")).Count() > 1)
@@ -221,7 +222,7 @@
       HtmlPage.AddOpenGraph("site_name", Dnn.Portal.PortalName);
       HtmlPage.AddOpenGraph("type", "website");
       HtmlPage.AddOpenGraph("description", WebUtility.HtmlDecode(Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description));
-      HtmlPage.AddOpenGraph("image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resize));
+      HtmlPage.AddOpenGraph("image", ("https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resize));
       HtmlPage.AddOpenGraph("image:alt", (Dnn.Portal.PortalName + " Logo"));
       HtmlPage.AddOpenGraph("url", Dnn.Tab.FullUrl);
       HtmlPage.AddOpenGraph("title", Text.First(Dnn.Tab.Title, Dnn.Tab.TabName));
@@ -233,8 +234,8 @@
         HtmlPage.AddMeta("twitter:site", App.Settings.TwitterHandle);
         twitterOverride += "\"twitter:site\": \"" + App.Settings.TwitterHandle  +"\"<br>";
       }
-      HtmlPage.AddMeta("twitter:image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resizeTwitter));
-      twitterOverride += "\"twitter:image\": \"https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resizeTwitter +"\"<br>";
+      HtmlPage.AddMeta("twitter:image", ("https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resizeTwitter));
+      twitterOverride += "\"twitter:image\": \"https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + resizeTwitter +"\"<br>";
       @* Pinterest rich pin additions: *@
     }
     foreach (var item in list)
@@ -247,21 +248,21 @@
       idx++;
       if (item.Type == "og" && AsList(Data).Where(a => (a.Type == "og")).Count() == 1)
       {
-        string myImage = "https://" + Dnn.Portal.PortalAlias.HTTPAlias + item.Image + "?h=630&w=1200&anchor=" + item.ImageAnchor + mode;
+        string myImage = "https://" + portalAlias + item.Image + "?h=630&w=1200&anchor=" + item.ImageAnchor + mode;
         HtmlPage.AddOpenGraph("site_name", Dnn.Portal.PortalName);
         HtmlPage.AddOpenGraph("type", "website");
         HtmlPage.AddOpenGraph("description", WebUtility.HtmlDecode(Text.First(Tags.Strip(item.Text).Length >= 200 ? Tags.Strip(item.Text).Substring(0, 196) + "..." : Tags.Strip(item.Text), Dnn.Tab.Description.Length >= 200 ? Dnn.Tab.Description.Substring(0, 196) + "..." : Dnn.Tab.Description)));
         if (item.Image != null && item.Image != "")
         {
           HtmlPage.AddOpenGraph("image", myImage);
-          HtmlPage.AddMeta("twitter:image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + item.Image + "?h=600&w=1200&anchor=" + item.ImageAnchor + mode));
-          twitterOverride += "\"twitter:image\": \"https://" + Dnn.Portal.PortalAlias.HTTPAlias + item.Image + "?h=600&w=1200&anchor=" + item.ImageAnchor + mode + "\"<br>";
+          HtmlPage.AddMeta("twitter:image", ("https://" + portalAlias + item.Image + "?h=600&w=1200&anchor=" + item.ImageAnchor + mode));
+          twitterOverride += "\"twitter:image\": \"https://" + portalAlias + item.Image + "?h=600&w=1200&anchor=" + item.ImageAnchor + mode + "\"<br>";
         }
         else
         {
-          HtmlPage.AddOpenGraph("image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=630&w=1200&anchor=" + item.ImageAnchor + mode));
-          HtmlPage.AddMeta("twitter:image", ("https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=600&w=1200&anchor=" + item.ImageAnchor + mode));
-          twitterOverride += "\"twitter:image\": \"https://" + Dnn.Portal.PortalAlias.HTTPAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=600&w=1200&anchor=" + item.ImageAnchor + mode + "\"<br>";
+          HtmlPage.AddOpenGraph("image", ("https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=630&w=1200&anchor=" + item.ImageAnchor + mode));
+          HtmlPage.AddMeta("twitter:image", ("https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=600&w=1200&anchor=" + item.ImageAnchor + mode));
+          twitterOverride += "\"twitter:image\": \"https://" + portalAlias + Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=600&w=1200&anchor=" + item.ImageAnchor + mode + "\"<br>";
         }
         if (item.ImageCaption != null && item.ImageCaption != "")
         {
@@ -284,20 +285,20 @@
         string myImage = "";
         @* if (item.Image != null && item.Image != "")
           {
-          myImage = "https://" + Dnn.Portal.PortalAlias.HTTPAlias + item.Image + "?mode=crop&h=601&w=589&anchor=middlecenter";
+          myImage = "https://" + portalAlias + item.Image + "?mode=crop&h=601&w=589&anchor=middlecenter";
           } *@
         jsonLd = new Dictionary<string, object> 
         {
           @* { "@context", "https://schema.org"}, *@
           { "@type", "WebPage"},
-          { "isPartOf", new Dictionary<string,object> {{"id", "https://" + Dnn.Portal.PortalAlias.HTTPAlias + "/#website"}}},
+          { "isPartOf", new Dictionary<string,object> {{"id", "https://" + portalAlias + "/#website"}}},
           { "headline", Text.First(item.Title, Dnn.Tab.Title)},
           { "abstract", WebUtility.HtmlDecode(Text.First(Tags.Strip(item.Text), Dnn.Tab.Description))},
           { "url", Dnn.Tab.FullUrl}
         };
         if (item.Image != null && item.Image != "")
         {
-          myImage = "https://" + Dnn.Portal.PortalAlias.HTTPAlias + item.Image + "?h=630&w=1200&anchor=" + item.ImageAnchor + mode;
+          myImage = "https://" + portalAlias + item.Image + "?h=630&w=1200&anchor=" + item.ImageAnchor + mode;
 
           jsonLd.Add("image", new Dictionary<string,object>[] {new Dictionary<string,object> {
             { "@type", "ImageObject"},
@@ -569,7 +570,7 @@
                           <img src='@(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=158&w=158&anchor=middlecenter")' />
                         </td>
                         <td class="w-92.25 px-4 py-3" style="font-family: Helvetica, Arial, sans-serif;">
-                          <div class="text-[#606770] text-sm uppercase">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                          <div class="text-[#606770] text-sm uppercase">@portalAlias</div>
                           <div class="text-[#4b4f56] text-lg font-semibold mt-1">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
                           <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-lg text-ellipsis wrap-break-word max-h-20">
                             @WebUtility.HtmlDecode(Dnn.Tab.Description)
@@ -601,7 +602,7 @@
                     </tr>
                     <tr>
                       <td class="w-131.75 h-19.5 px-4 py-3" style="font-family: Helvetica, Arial, sans-serif;">
-                        <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-sm uppercase">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                        <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-sm uppercase">@portalAlias</div>
                         <div class="text-[#4b4f56] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-lg font-semibold mt-1">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
                         <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-lg wrap-break-word mt-1 max-h-20">
                           @WebUtility.HtmlDecode(Dnn.Tab.Description)
@@ -725,7 +726,7 @@
                             <img src='@(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=158&w=158&anchor=middlecenter")' />
                           </td>
                           <td class="w-92.25 px-4 py-3" style="font-family: Helvetica, Arial, sans-serif;">
-                            <div class="text-[#606770] text-sm uppercase">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                            <div class="text-[#606770] text-sm uppercase">@portalAlias</div>
                             <div class="text-[#4b4f56] text-lg font-semibold mt-1">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
                             <div class="text-[#606770] text-lg max-w-125.75 max-h-20 overflow-hidden whitespace-nowrap text-ellipsis wrap-break-word mt-1">
                               @WebUtility.HtmlDecode(Dnn.Tab.Description)
@@ -756,7 +757,7 @@
                         </tr>
                         <tr>
                           <td class="w-131.75 h-19.5 px-4 py-3" style="font-family: Helvetica, Arial, sans-serif;">
-                            <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-sm uppercase">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                            <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-sm uppercase">@portalAlias</div>
                             <div class="text-[#4b4f56] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-lg font-semibold mt-1">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
                             <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-lg wrap-break-word mt-1 max-h-20">
                               @WebUtility.HtmlDecode(Dnn.Tab.Description)
@@ -813,7 +814,7 @@
                                 <img src="@item.Image?h=158&w=158@mode&anchor=@item.ImageAnchor" />
                               </td>
                               <td class="w-92.25 px-4 py-3" style="font-family: Helvetica, Arial, sans-serif;">
-                                <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-sm uppercase">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                                <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-sm uppercase">@portalAlias</div>
                                 <div class="text-[#4b4f56] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-lg font-semibold mt-1">@Text.First(item.Title, Dnn.Tab.Title, Dnn.Tab.TabName)</div>
                                 <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-lg wrap-break-word mt-1 max-h-20">
                                   @if (item.Text != null && item.Text != "")
@@ -853,7 +854,7 @@
                             </tr>
                             <tr>
                               <td class="w-131.75 h-19.5 px-4 py-3" style="font-family: Helvetica, Arial, sans-serif;">
-                                <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-sm uppercase">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                                <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-sm uppercase">@portalAlias</div>
                                 <div class="text-[#4b4f56] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-lg font-semibold mt-1">@Text.First(item.Title, Dnn.Tab.Title, Dnn.Tab.TabName)</div>
                                 <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-lg wrap-break-word mt-1 max-h-20">
                                   @if (item.Text != null && item.Text != "")
@@ -915,7 +916,7 @@
                                       <img src='@(Dnn.Portal.HomeDirectory + Dnn.Portal.LogoFile + "?h=158&w=158&anchor=middlecenter")' />
                                     </td>
                                     <td class="w-131.75 h-19.5 px-4 py-3" style="font-family: Helvetica, Arial, sans-serif;">
-                                      <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-sm uppercase">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                                      <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-sm uppercase">@portalAlias</div>
                                       <div class="text-[#4b4f56] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-lg font-semibold mt-1">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
                                       <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-lg wrap-break-word mt-1 max-h-20">
                                         @WebUtility.HtmlDecode(Dnn.Tab.Description)
@@ -946,7 +947,7 @@
                                   </tr>
                                   <tr>
                                     <td class="w-131.75 h-19.5 px-4 py-3" style="font-family: Helvetica, Arial, sans-serif;">
-                                      <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-sm uppercase">@Dnn.Portal.PortalAlias.HTTPAlias</div>
+                                      <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-sm uppercase">@portalAlias</div>
                                       <div class="text-[#4b4f56] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-lg font-semibold mt-1">@Text.First(Dnn.Tab.Title, Dnn.Tab.TabName)</div>
                                       <div class="text-[#606770] max-w-125.75 overflow-hidden whitespace-nowrap text-ellipsis text-lg wrap-break-word mt-1 max-h-20">
                                         @WebUtility.HtmlDecode(Dnn.Tab.Description)
